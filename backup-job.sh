@@ -11,12 +11,19 @@ sites=$(ls -1 sites | grep -Ev "assets|apps.json|apps.txt|common_site_config.jso
 # Debug: Print the sites
 echo "Found valid sites: $sites"
 
+# Ensure top-level external-backup permissions for all sites
+chmod -R 777 /external-backup
+chown -R frappe:frappe /external-backup
+
 # Loop through each site and create a site-specific backup folder
 for site in $sites; do
     echo "🔹 Backing up site: $site"
 
     backup_dir="/external-backup/$site"
     mkdir -p "$backup_dir"
+    # Set correct permissions
+    chmod -R 770 "$backup_dir"  # Restrict to owner/group (read/write/execute)
+    chown -R frappe:frappe "$backup_dir"
 
     # Perform the backup
     su - frappe -c "cd /home/frappe/frappe-bench && bench --site '$site' backup --with-files --compress --backup-path '$backup_dir'"

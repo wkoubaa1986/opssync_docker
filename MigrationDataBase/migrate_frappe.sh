@@ -1,87 +1,67 @@
 #!/bin/bash
 
 # Set Variables
-SITE_NAME="aquaworldservicing"  # Change if your site has a different name
-DB_NAME="_af98b2a5396924c8"
-DB_PASSWORD="tMBRgWEcFpkPdhiv"
-DOCKER_CONTAINER="erp_multi_tenancy-backend-1"
+OLD_SITE_NAME="aquaworldservicing.frappe.cloud"
+SITE_NAME="aquaworldservicing.opssync.pro"  # Change if your site has a different name
+DB_NAME="_f4e3c6415dd0cb74"
+DB_PASSWORD=Wassim1986
+DOCKER_CONTAINER="opssync1-backend-1"
+DATABASE_CONTAINER="mariadb-database"
 # Backup file names (from the screenshot)
-DB_BACKUP="20250216_080014-aquaworldservicing_frappe_cloud-database.sql.gz"
-FILES_BACKUP="20250216_080014-aquaworldservicing_frappe_cloud-files.tar"
-PRIVATE_BACKUP="20250216_080014-aquaworldservicing_frappe_cloud-private-files.tar"
-CONFIG_BACKUP="20250216_080014-aquaworldservicing_frappe_cloud-site_config_backup.json"
+DB_BACKUP=/home/wassim/gitops/MigrationDataBase/20250302_100820-aquaworldservicing_frappe_cloud-database.sql.gz
+PUBLIC_BACKUP=/home/wassim/gitops/MigrationDataBase/20250302_113016-aquaworldservicing_frappe_cloud-files.tar
+PRIVATE_BACKUP=/home/wassim/gitops/MigrationDataBase/20250302_113016-aquaworldservicing_frappe_cloud-private-files.tar
+CONFIG_BACKUP=/home/wassim/gitops/MigrationDataBase/20250302_113016-aquaworldservicing_frappe_cloud-site_config_backup.json
+DECRYPTED_FILE="/home/wassim/gitops/MigrationDataBase/database.sql.gz"
+
+# echo "🚀 Starting Migration Process..."
+
+# if grep -q '"encryption_key"' "$CONFIG_BACKUP"; then
+#     ENCRYPTION_KEY=$(jq -r '.encryption_key' "$CONFIG_BACKUP")
+# else
+#     ENCRYPTION_KEY=""
+# fi
+
+# # # Step 2: Decrypt Backup Files
+# # echo "🔐 Decrypting backups..."
+# # openssl enc -d -aes-256-cbc -md md5 -in "$DB_BACKUP" -out "$DECRYPTED_FILE" -k "$ENCRYPTION_KEY"
+
+# DB_SQL="/home/wassim/gitops/MigrationDataBase/database.sql"
+# gunzip -c -f $DB_BACKUP > $DB_SQL
+# docker cp $DB_SQL $DOCKER_CONTAINER:/tmp/database.sql
+# docker exec -it "$DOCKER_CONTAINER" bench --site "$SITE_NAME"  restore /tmp/database.sql
+
+# # docker cp /path/to/database.sql "$DOCKER_CONTAINER":/home/frappe/frappe-bench/database.sql
+
+# echo "⏳ Waiting for database restore to finish..."
+# sleep 5
+# bench --site aquaworldservicing.opssync.pro migrate
+# echo "🔄 Restoring database..."
+# # docker exec -i $DATABASE_CONTAINER mysql -u root -pWassim1986 -e "DROP DATABASE IF EXISTS ${DB_NAME}; CREATE DATABASE ${DB_NAME};"
+
+# # docker exec -it $DATABASE_CONTAINER bash mysql -u root -pWassim1986
+# # docker exec -i  $DATABASE_CONTAINER mysql -u root -pWassim1986 $DB_NAME < /tmp/database.sql
 
 
-echo "🚀 Starting Migration Process..."
+# echo "⚙️ Running migrations..."
+# docker exec -i $DOCKER_CONTAINER bash -c "cd /home/frappe/frappe-bench && bench migrate"
 
-# Step 1: Extract Encryption Key from Backup Config
-echo "🔍 Extracting encryption key..."
-ENCRYPTION_KEY=$(jq -r '.encryption_key' $CONFIG_BACKUP)
 
-if [[ -z "$ENCRYPTION_KEY" || "$ENCRYPTION_KEY" == "null" ]]; then
-    echo "❌ Failed to extract encryption key from $CONFIG_BACKUP"
-    exit 1
-fi
-echo "🔑 Encryption Key Found: $ENCRYPTION_KEY"
-
-# Step 2: Decrypt Backup Files
-echo "🔐 Decrypting backups..."
-openssl enc -d -aes-256-cbc -md md5 -in $DB_BACKUP -out database.sql.gz -k "$ENCRYPTION_KEY"
-openssl enc -d -aes-256-cbc -md md5 -in $PRIVATE_BACKUP -out private-files.tar -k "$ENCRYPTION_KEY"
-openssl enc -d -aes-256-cbc -md md5 -in $PUBLIC_BACKUP -out public-files.tar -k "$ENCRYPTION_KEY"
-
-# Step 3: Stop ERPNext (Optional)
-echo "🛑 Stopping ERPNext services..."
-docker stop $DOCKER_CONTAINER
-
-echo "🔄 Extracting database backup..."
-gunzip -f $DB_BACKUP
-
-# Get extracted database filename
-DB_SQL="${DB_BACKUP%.gz}"  # Removes .gz from the filename
-
-# Step 3: Copy Backup Files into Docker Container
+# Step 4: Copy Backup Files into Docker Container
 echo "📂 Copying files into the container..."
-docker cp $DB_SQL $DOCKER_CONTAINER:/home/frappe/database.sql
-docker cp $PRIVATE_BACKUP $DOCKER_CONTAINER:/home/frappe/private-files.tar
-docker cp $FILES_BACKUP $DOCKER_CONTAINER:/home/frappe/public-files.tar
+# docker cp $DB_SQL $DATABASE_CONTAINER:/tmp/database.sql
+docker cp $PRIVATE_BACKUP $DOCKER_CONTAINER:/tmp/private-files.tar
+docker cp $PUBLIC_BACKUP $DOCKER_CONTAINER:/tmp/public-files.tar
 
-echo "🚀 Starting ERPNext container..."
-docker start $DOCKER_CONTAINER
+# Extract private files to the correct location
+echo "⚙️ Extracting private files ..."
+docker exec -u frappe -w /home/frappe/frappe-bench/ $DOCKER_CONTAINER tar --transform="s|$OLD_SITE_NAME|$SITE_NAME|" -xvf /tmp/private-files.tar -C /home/frappe/frappe-bench/sites/
 
-# Step 4: Restore Database
-echo "🔄 Restoring database..."
-docker exec -i $DOCKER_CONTAINER bench --site $SITE_NAME db-restore --force /home/frappe/database.sql
+# Extract public files to the correct location
+echo "⚙️ Extracting public files ..."
+docker exec -u frappe -w /home/frappe/frappe-bench/ $DOCKER_CONTAINER tar --transform="s|$OLD_SITE_NAME|$SITE_NAME|" -xvf /tmp/public-files.tar -C /home/frappe/frappe-bench/sites/
 
-# Step 5: Restore Private and Public Files
-echo "📂 Extracting and restoring private & public files..."
-docker exec -it $DOCKER_CONTAINER tar -xvf /home/frappe/private-files.tar -C /home/frappe/frappe-bench/sites/$SITE_NAME/private/
-docker exec -it $DOCKER_CONTAINER tar -xvf /home/frappe/public-files.tar -C /home/frappe/frappe-bench/sites/$SITE_NAME/public/
-
-# Step 7: Update site_config.json
-echo "🛠 Updating site_config.json..."
-docker exec -it $DOCKER_CONTAINER bash -c "cat > /home/frappe/frappe-bench/sites/$SITE_NAME/site_config.json <<EOF
-{
- \"db_name\": \"$DB_NAME\",
- \"db_password\": \"$DB_PASSWORD\",
- \"db_type\": \"mariadb\"
-}
-EOF"
-
-# Step 8: Run Migrations
-echo "⚙️ Running migrations..."
-docker exec -it $DOCKER_CONTAINER bench --site $SITE_NAME migrate
-
-# Step 9: Restart ERPNext Services
-echo "🔄 Restarting ERPNext..."
-docker exec -it $DOCKER_CONTAINER bench restart
-
-# Step 10: Cleanup Backup Files
-echo "🗑 Cleaning up backup files..."
-rm database.sql.gz private-files.tar public-files.tar
-
-# Step 11: Verify Migration
-echo "✅ Migration complete! Access your site at:"
-echo "🌍 http://localhost:8082 (or your configured domain)"
+# Cleanup: Remove backup files from the container
+docker exec -u frappe $DOCKER_CONTAINER rm /tmp/private-files.tar /tmp/public-files.tar /tmp/database.sql
 
 exit 0

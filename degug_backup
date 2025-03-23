@@ -1,11 +1,11 @@
 docker run --rm -it \
   --entrypoint sh \
-  --network OpsSync \
+  --network opssync1 \
   --network mariadb-network \
   -v /home/ubuntu/OpsSync/OpsSync_Backup:/external-backup:rw \
-  -v sites:/home/frappe/frappe-bench/sites \
+  -v opssync1_sites:/home/frappe/frappe-bench/sites \
   -e DB_HOST=mariadb-database \
   -e DB_PASSWORD=Wassim1986 \
   -e BACKUP_CRON_SCHEDULE="0 2 * * *" \
   -e MANUAL_BACKUP="true" \
-  backup-image:latest
+  backup-image

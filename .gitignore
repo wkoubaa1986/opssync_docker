@@ -1,2 +1,5 @@
 MigrationDataBase/*
 !MigrationDataBase/migrate_frappe.sh
+public-files.tar
+private-files.tar
+Untitled-1.sh

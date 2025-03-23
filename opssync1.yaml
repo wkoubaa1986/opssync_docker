@@ -16,6 +16,7 @@ services:
         source: sites
         target: /home/frappe/frappe-bench/sites
         volume: {}
+    restart: unless-stopped
   configurator:
     command:
       - |
@@ -47,6 +48,7 @@ services:
         source: sites
         target: /home/frappe/frappe-bench/sites
         volume: {}
+    restart: unless-stopped
   frontend:
     command:
       - nginx-entrypoint.sh
@@ -72,10 +74,10 @@ services:
       traefik.enable: "true"
       traefik.http.routers.opssync1-http.entrypoints: http
       traefik.http.routers.opssync1-http.middlewares: https-redirect
-      traefik.http.routers.opssync1-http.rule: Host(`innovacortex.opssync.pro`,`bluecode-solutions.opssync.pro`,`aquaworldservicing.opssync.pro`)
+      traefik.http.routers.opssync1-http.rule: Host(`innovacortex.opssync.pro`,`bluecode-solutions.opssync.pro`,`aquaworldservicing.opssync.pro`,`www.innovacortex.opssync.pro`,`www.bluecode-solutions.opssync.pro`,`www.aquaworldservicing.opssync.pro`)
       traefik.http.routers.opssync1-http.service: opssync1
       traefik.http.routers.opssync1-https.entrypoints: https
-      traefik.http.routers.opssync1-https.rule: Host(`innovacortex.opssync.pro`,`bluecode-solutions.opssync.pro`,`aquaworldservicing.opssync.pro`)
+      traefik.http.routers.opssync1-https.rule: Host(`innovacortex.opssync.pro`,`bluecode-solutions.opssync.pro`,`aquaworldservicing.opssync.pro`,`www.innovacortex.opssync.pro`,`www.bluecode-solutions.opssync.pro`,`www.aquaworldservicing.opssync.pro`)
       traefik.http.routers.opssync1-https.service: opssync1
       traefik.http.routers.opssync1-https.tls: "true"
       traefik.http.routers.opssync1-https.tls.certresolver: le
@@ -90,6 +92,7 @@ services:
         source: sites
         target: /home/frappe/frappe-bench/sites
         volume: {}
+    restart: unless-stopped
   queue-long:
     command:
       - bench
@@ -111,6 +114,7 @@ services:
         source: sites
         target: /home/frappe/frappe-bench/sites
         volume: {}
+    restart: unless-stopped
   queue-short:
     command:
       - bench
@@ -132,11 +136,13 @@ services:
         source: sites
         target: /home/frappe/frappe-bench/sites
         volume: {}
+    restart: unless-stopped
   redis-cache:
     image: redis:6.2-alpine
     networks:
       bench-network: null
       mariadb-network: null
+    restart: unless-stopped
   redis-queue:
     image: redis:6.2-alpine
     networks:
@@ -147,6 +153,7 @@ services:
         source: redis-queue-data
         target: /data
         volume: {}
+    restart: unless-stopped
   scheduler:
     command:
       - bench
@@ -166,6 +173,7 @@ services:
         source: sites
         target: /home/frappe/frappe-bench/sites
         volume: {}
+    restart: unless-stopped
   websocket:
     command:
       - node
@@ -185,14 +193,15 @@ services:
         source: sites
         target: /home/frappe/frappe-bench/sites
         volume: {}
+    restart: unless-stopped
   backup:
     image: backup-image
     entrypoint: ["bash", "-c", "/usr/local/bin/backup-and-schedule.sh"]
     environment:
       DB_HOST: mariadb-database
       DB_PASSWORD: ${DB_PASSWORD}
-      BACKUP_CRON_SCHEDULE: "0 2 * * *"
-      MANUAL_BACKUP: "true"  # Run backup immediately when container starts
+      BACKUP_CRON_SCHEDULE: "0 */6 * * *"
+      MANUAL_BACKUP: "false"  # Run backup immediately when container starts
     volumes:
       - sites:/home/frappe/frappe-bench/sites
       - /home/ubuntu/OpsSync/OpsSync_Backup:/external-backup:rw

@@ -21,6 +21,9 @@ echo "Cron schedule set to: ${SCHEDULE}"
 mkdir -p /var/log
 touch /var/log/cron.log
 
+# ✅ Redirect cron logs to Docker logs (stdout)
+ln -sf /proc/1/fd/1 /var/log/cron.log
+
 # Remove existing backup-job.sh cron job (to avoid duplicates)
 crontab -l 2>/dev/null | grep -v "backup-job.sh" | crontab -
 
