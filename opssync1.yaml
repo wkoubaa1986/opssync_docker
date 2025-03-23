@@ -48,7 +48,6 @@ services:
         source: sites
         target: /home/frappe/frappe-bench/sites
         volume: {}
-    restart: unless-stopped
   frontend:
     command:
       - nginx-entrypoint.sh
@@ -204,7 +203,7 @@ services:
       MANUAL_BACKUP: "false"  # Run backup immediately when container starts
     volumes:
       - sites:/home/frappe/frappe-bench/sites
-      - /home/ubuntu/OpsSync/OpsSync_Backup:/external-backup:rw
+      - /home/wassim/Documents/Local_Services/OpsSync/OpsSync_Backup:/external-backup:rw
     networks:
       bench-network: null
       mariadb-network: null

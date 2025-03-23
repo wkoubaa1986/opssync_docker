@@ -3,3 +3,4 @@ MigrationDataBase/*
 public-files.tar
 private-files.tar
 Untitled-1.sh
+*.env
