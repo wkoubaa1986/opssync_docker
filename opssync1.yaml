@@ -68,19 +68,6 @@ services:
       UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
       UPSTREAM_REAL_IP_RECURSIVE: "off"
     image: ghcr.io/wkoubaa1986/opssync:1.0.0
-    labels:
-      traefik.docker.network: traefik-public
-      traefik.enable: "true"
-      traefik.http.routers.opssync1-http.entrypoints: http
-      traefik.http.routers.opssync1-http.middlewares: https-redirect
-      traefik.http.routers.opssync1-http.rule: Host(`innovacortex.opssync.pro`,`bluecode-solutions.opssync.pro`,`aquaworldservicing.opssync.pro`,`www.innovacortex.opssync.pro`,`www.bluecode-solutions.opssync.pro`,`www.aquaworldservicing.opssync.pro`)
-      traefik.http.routers.opssync1-http.service: opssync1
-      traefik.http.routers.opssync1-https.entrypoints: https
-      traefik.http.routers.opssync1-https.rule: Host(`innovacortex.opssync.pro`,`bluecode-solutions.opssync.pro`,`aquaworldservicing.opssync.pro`,`www.innovacortex.opssync.pro`,`www.bluecode-solutions.opssync.pro`,`www.aquaworldservicing.opssync.pro`)
-      traefik.http.routers.opssync1-https.service: opssync1
-      traefik.http.routers.opssync1-https.tls: "true"
-      traefik.http.routers.opssync1-https.tls.certresolver: le
-      traefik.http.services.opssync1.loadbalancer.server.port: "8080"
     networks:
       bench-network: null
       traefik-public: null

@@ -1,0 +1,18 @@
+services:
+  caddy:
+    image: caddy-caddy:latest
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    env_file:
+      - ./caddy.env
+    networks:
+      - traefik-public
+
+networks:
+  traefik-public:
+    external: true

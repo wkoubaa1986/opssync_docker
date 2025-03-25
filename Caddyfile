@@ -1,0 +1,41 @@
+{
+    email koubaawassim@gmail.com
+}
+
+# Common TLS block (optional for advanced control)
+(tls_cloudflare) {
+    tls {
+        dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+        resolvers 1.1.1.1 1.0.0.1
+        protocols tls1.2 tls1.3
+    }
+}
+
+# Redirect www to root domains
+www.aquaworldservicing.opssync.pro {
+    redir https://aquaworldservicing.opssync.pro{uri} permanent
+}
+
+www.bluecode-solutions.opssync.pro {
+    redir https://bluecode-solutions.opssync.pro{uri} permanent
+}
+
+www.innovacortex.opssync.pro {
+    redir https://innovacortex.opssync.pro{uri} permanent
+}
+
+# Root domains with reverse proxy and secure TLS
+aquaworldservicing.opssync.pro {
+    import tls_cloudflare
+    reverse_proxy opssync-frontend-1:8080
+}
+
+bluecode-solutions.opssync.pro {
+    import tls_cloudflare
+    reverse_proxy opssync-frontend-1:8080
+}
+
+innovacortex.opssync.pro {
+    import tls_cloudflare
+    reverse_proxy opssync-frontend-1:8080
+}
