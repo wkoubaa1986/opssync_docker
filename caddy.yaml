@@ -1,6 +1,6 @@
 services:
   caddy:
-    image: caddy-caddy:latest
+    image: caddy-cloudflare:latest  # 👈 Use the image you just built
     container_name: caddy
     restart: unless-stopped
     ports:
@@ -8,6 +8,7 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
+      - /home/wassim/Documents/Local_Services/Chatwoot/aquaworld:/srv/aquaworld
     env_file:
       - ./caddy.env
     networks:

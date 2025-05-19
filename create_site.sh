@@ -8,7 +8,7 @@ SITE_NAME="$2"
 DB_ROOT_PASSWORD="$3"
 ADMIN_PASSWORD="$4"
 APPS_TO_INSTALL="${@:5}"  # All remaining arguments from position 5 onward
-
+DB_NAME=$(echo "$SITE_NAME" | cut -d'.' -f1)
 if [ $# -lt 5 ]; then
   echo "Usage: $0 <project_name> <site_name> <db_root_password> <admin_password> <app1> [app2] [app3]..."
   exit 1
@@ -23,6 +23,7 @@ docker compose --project-name "$PROJECT_NAME" exec backend \
   --mariadb-user-host-login-scope=% \
   --db-root-password "$DB_ROOT_PASSWORD" \
   --admin-password "$ADMIN_PASSWORD" \
+  --db-name "$DB_NAME" \
   --install-app "$FIRST_APP"
 
 # Install remaining apps (if any)
@@ -36,4 +37,7 @@ docker compose --project-name "$PROJECT_NAME" exec backend \
   bench --site "$SITE_NAME" enable-scheduler
 
 docker compose --project-name "$PROJECT_NAME" exec backend \
-  bench --site "$SITE_NAME" set-config server_script_enabled true
+  bench --site "$SITE_NAME" set-config server_script_enabled 1
+
+
+

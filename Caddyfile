@@ -39,3 +39,17 @@ innovacortex.opssync.pro {
     import tls_cloudflare
     reverse_proxy opssync-frontend-1:8080
 }
+
+aquaworldservicing.pro, www.aquaworldservicing.pro {
+    # Serve the specific file for /politique-de-confidentialite
+    @policy path /politique-de-confidentialite
+    handle @policy {
+        root * /srv/aquaworld
+        file_server
+        try_files /politique-de-confidentialite.html
+    }
+
+    
+    # Reverse proxy all other requests to the Chatwoot Rails backend
+    reverse_proxy chatwoot-rails-1:3000
+}
