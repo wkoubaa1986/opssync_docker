@@ -5,17 +5,15 @@ services:
       configurator:
         condition: service_completed_successfully
         required: true
-    image: ghcr.io/wkoubaa1986/opssync:1.0.0
+    image: ghcr.io/wkoubaa1986/opssync:3.0.1
     networks:
       bench-network: null
       mariadb-network: null
     platform: linux/amd64
     pull_policy: never
     volumes:
-      - type: volume
-        source: sites
-        target: /home/frappe/frappe-bench/sites
-        volume: {}
+      - /home/wassim/Documents/Local_Services/OpsSync/sites:/home/frappe/frappe-bench/sites:cached
+
     restart: unless-stopped
   configurator:
     command:
@@ -37,17 +35,15 @@ services:
       REDIS_CACHE: redis-cache:6379
       REDIS_QUEUE: redis-queue:6379
       SOCKETIO_PORT: "9000"
-    image: ghcr.io/wkoubaa1986/opssync:1.0.0
+    image: ghcr.io/wkoubaa1986/opssync:3.0.1
     networks:
       bench-network: null
       mariadb-network: null
     platform: linux/amd64
     pull_policy: never
     volumes:
-      - type: volume
-        source: sites
-        target: /home/frappe/frappe-bench/sites
-        volume: {}
+      - /home/wassim/Documents/Local_Services/OpsSync/sites:/home/frappe/frappe-bench/sites:cached
+
   frontend:
     command:
       - nginx-entrypoint.sh
@@ -67,17 +63,15 @@ services:
       UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
       UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
       UPSTREAM_REAL_IP_RECURSIVE: "off"
-    image: ghcr.io/wkoubaa1986/opssync:1.0.0
+    image: ghcr.io/wkoubaa1986/opssync:3.0.1
     networks:
       bench-network: null
       traefik-public: null
     platform: linux/amd64
     pull_policy: never
     volumes:
-      - type: volume
-        source: sites
-        target: /home/frappe/frappe-bench/sites
-        volume: {}
+      - /home/wassim/Documents/Local_Services/OpsSync/sites:/home/frappe/frappe-bench/sites:cached
+
     restart: unless-stopped
   queue-long:
     command:
@@ -89,17 +83,15 @@ services:
       configurator:
         condition: service_completed_successfully
         required: true
-    image: ghcr.io/wkoubaa1986/opssync:1.0.0
+    image: ghcr.io/wkoubaa1986/opssync:3.0.1
     networks:
       bench-network: null
       mariadb-network: null
     platform: linux/amd64
     pull_policy: never
     volumes:
-      - type: volume
-        source: sites
-        target: /home/frappe/frappe-bench/sites
-        volume: {}
+      - /home/wassim/Documents/Local_Services/OpsSync/sites:/home/frappe/frappe-bench/sites:cached
+
     restart: unless-stopped
   queue-short:
     command:
@@ -111,17 +103,15 @@ services:
       configurator:
         condition: service_completed_successfully
         required: true
-    image: ghcr.io/wkoubaa1986/opssync:1.0.0
+    image: ghcr.io/wkoubaa1986/opssync:3.0.1
     networks:
       bench-network: null
       mariadb-network: null
     platform: linux/amd64
     pull_policy: never
     volumes:
-      - type: volume
-        source: sites
-        target: /home/frappe/frappe-bench/sites
-        volume: {}
+      - /home/wassim/Documents/Local_Services/OpsSync/sites:/home/frappe/frappe-bench/sites:cached
+
     restart: unless-stopped
   redis-cache:
     image: redis:6.2-alpine
@@ -148,17 +138,15 @@ services:
       configurator:
         condition: service_completed_successfully
         required: true
-    image: ghcr.io/wkoubaa1986/opssync:1.0.0
+    image: ghcr.io/wkoubaa1986/opssync:3.0.1
     networks:
       bench-network: null
       mariadb-network: null
     platform: linux/amd64
     pull_policy: never
     volumes:
-      - type: volume
-        source: sites
-        target: /home/frappe/frappe-bench/sites
-        volume: {}
+      - /home/wassim/Documents/Local_Services/OpsSync/sites:/home/frappe/frappe-bench/sites:cached
+
     restart: unless-stopped
   websocket:
     command:
@@ -168,20 +156,18 @@ services:
       configurator:
         condition: service_completed_successfully
         required: true
-    image: ghcr.io/wkoubaa1986/opssync:1.0.0
+    image: ghcr.io/wkoubaa1986/opssync:3.0.1
     networks:
       bench-network: null
       mariadb-network: null
     platform: linux/amd64
     pull_policy: never
     volumes:
-      - type: volume
-        source: sites
-        target: /home/frappe/frappe-bench/sites
-        volume: {}
+      - /home/wassim/Documents/Local_Services/OpsSync/sites:/home/frappe/frappe-bench/sites:cached
+
     restart: unless-stopped
   backup:
-    image: backup-image
+    image: backup-image:2.0.0
     entrypoint: ["bash", "-c", "/usr/local/bin/backup-and-schedule.sh"]
     environment:
       DB_HOST: mariadb-database
@@ -189,7 +175,7 @@ services:
       BACKUP_CRON_SCHEDULE: "0 */6 * * *"
       MANUAL_BACKUP: "false"  # Run backup immediately when container starts
     volumes:
-      - sites:/home/frappe/frappe-bench/sites
+      - /home/wassim/Documents/Local_Services/OpsSync/sites:/home/frappe/frappe-bench/sites:cached
       - /home/wassim/Documents/Local_Services/OpsSync/OpsSync_Backup:/external-backup:rw
     networks:
       bench-network: null
@@ -207,20 +193,19 @@ networks:
 volumes:
   redis-queue-data:
     name: opssync1_redis-queue-data
-  sites:
-    name: opssync1_sites
-x-backend-defaults:
-  depends_on:
-    configurator:
-      condition: service_completed_successfully
-  image: ghcr.io/wkoubaa1986/opssync:1.0.0
-  pull_policy: never
-  volumes:
-    - sites:/home/frappe/frappe-bench/sites
-x-customizable-image:
-  image: ghcr.io/wkoubaa1986/opssync:1.0.0
-  pull_policy: never
-x-depends-on-configurator:
-  depends_on:
-    configurator:
-      condition: service_completed_successfully
+
+# x-backend-defaults:
+#   depends_on:
+#     configurator:
+#       condition: service_completed_successfully
+#   image: ghcr.io/wkoubaa1986/opssync:3.0.1
+#   pull_policy: never
+#   volumes:
+#     - sites:/home/frappe/frappe-bench/sites
+# x-customizable-image:
+#   image: ghcr.io/wkoubaa1986/opssync:3.0.1
+#   pull_policy: never
+# x-depends-on-configurator:
+#   depends_on:
+#     configurator:
+#       condition: service_completed_successfully

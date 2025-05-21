@@ -1,5 +1,5 @@
 # Use OpsSync base image (Debian-based)
-FROM ghcr.io/wkoubaa1986/opssync:1.0.0
+FROM ghcr.io/wkoubaa1986/opssync:2.0.0
 
 # Switch to root user for setup
 USER root
